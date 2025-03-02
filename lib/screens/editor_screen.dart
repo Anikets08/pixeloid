@@ -81,6 +81,10 @@ class _EditorScreenState extends State<EditorScreen> {
     'Lobster',
   ];
 
+  // Add these properties to track image dimensions and aspect ratio
+  double? _imageAspectRatio;
+  Color _backgroundColor = Colors.black;
+
   @override
   void initState() {
     super.initState();
@@ -105,12 +109,33 @@ class _EditorScreenState extends State<EditorScreen> {
       final ui.Codec codec = await ui.instantiateImageCodec(bytes);
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
 
+      // Calculate aspect ratio of the loaded image
+      final double imageWidth = frameInfo.image.width.toDouble();
+      final double imageHeight = frameInfo.image.height.toDouble();
+      final double aspectRatio = imageWidth / imageHeight;
+
+      // Instagram's standard aspect ratio is 9:16 (0.5625)
+      const double instagramAspectRatio = 9 / 16;
+
       setState(() {
         _backgroundImage = frameInfo.image;
+        _imageAspectRatio = aspectRatio;
         _isImageLoaded = true;
-        _controller.background = ImageBackgroundDrawable(
-          image: _backgroundImage!,
-        );
+
+        // If the image has a different aspect ratio than Instagram's standard,
+        // we'll use a custom background drawable that maintains the aspect ratio
+        if ((aspectRatio - instagramAspectRatio).abs() > 0.01) {
+          _controller.background = CustomImageBackgroundDrawable(
+            image: _backgroundImage!,
+            aspectRatio: aspectRatio,
+            backgroundColor: _backgroundColor,
+          );
+        } else {
+          // For images with standard aspect ratio, use the default background
+          _controller.background = ImageBackgroundDrawable(
+            image: _backgroundImage!,
+          );
+        }
       });
     }
   }
@@ -252,7 +277,7 @@ class _EditorScreenState extends State<EditorScreen> {
 
       // Use a more appropriate pixel ratio to match Instagram's recommended size
       // Instagram recommends 1080x1920 (9:16 aspect ratio)
-      final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
 
@@ -417,7 +442,7 @@ class _EditorScreenState extends State<EditorScreen> {
                               alignment: Alignment.bottomCenter,
                               child: Container(
                                 height: 40,
-                                color: Colors.black12,
+                                color: Colors.black,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,
                                   horizontal: 16,
@@ -573,6 +598,17 @@ class _EditorScreenState extends State<EditorScreen> {
               },
               type: ToolBarButtonType.sticker,
             ),
+
+            // Background color picker (only show for non-standard aspect ratio images)
+            if (_imageAspectRatio != null &&
+                ((_imageAspectRatio! - 9 / 16).abs() > 0.01))
+              _iconButton(
+                Icons.format_color_fill,
+                () {
+                  _showBackgroundColorPicker();
+                },
+                type: ToolBarButtonType.color,
+              ),
 
             // Undo
             _iconButton(
@@ -1017,5 +1053,154 @@ class _EditorScreenState extends State<EditorScreen> {
         );
       },
     );
+  }
+
+  void _showBackgroundColorPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isDismissible: true,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, ss) {
+          return Container(
+            height: 300,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Background Color',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Choose a background color for the empty space around your image:',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount:
+                        Colors.primaries.length + 2, // +2 for black and white
+                    itemBuilder: (context, index) {
+                      Color color;
+                      if (index < Colors.primaries.length) {
+                        color = Colors.primaries[index];
+                      } else if (index == Colors.primaries.length) {
+                        color = Colors.black;
+                      } else {
+                        color = Colors.white;
+                      }
+
+                      return GestureDetector(
+                        onTap: () {
+                          // Select color
+                          _changeBackgroundColor(color);
+                          Navigator.pop(context);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _backgroundColor == color
+                                  ? Colors.blue
+                                  : Colors.black12,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  // Add this method to the class to allow changing the background color
+  void _changeBackgroundColor(Color color) {
+    setState(() {
+      _backgroundColor = color;
+
+      // Update the background if we have a non-standard aspect ratio image
+      if (_backgroundImage != null &&
+          _imageAspectRatio != null &&
+          ((_imageAspectRatio! - 9 / 16).abs() > 0.01)) {
+        _controller.background = CustomImageBackgroundDrawable(
+          image: _backgroundImage!,
+          aspectRatio: _imageAspectRatio!,
+          backgroundColor: _backgroundColor,
+        );
+      }
+    });
+  }
+}
+
+// Add this custom drawable class at the end of the file, outside the _EditorScreenState class
+class CustomImageBackgroundDrawable extends BackgroundDrawable {
+  final ui.Image image;
+  final double aspectRatio;
+  final Color backgroundColor;
+
+  CustomImageBackgroundDrawable({
+    required this.image,
+    required this.aspectRatio,
+    required this.backgroundColor,
+  });
+
+  @override
+  void draw(Canvas canvas, Size size) {
+    // Fill the entire canvas with the background color
+    final Paint backgroundPaint = Paint()..color = backgroundColor;
+    canvas.drawRect(Offset.zero & size, backgroundPaint);
+
+    // Calculate dimensions to maintain aspect ratio
+    double targetWidth = size.width;
+    double targetHeight = size.height;
+
+    // Instagram's aspect ratio is 9:16 (0.5625)
+    const double instagramAspectRatio = 9 / 16;
+
+    if (aspectRatio > instagramAspectRatio) {
+      // Image is wider than Instagram's aspect ratio
+      targetHeight = size.width / aspectRatio;
+      // Center the image vertically
+      double topOffset = (size.height - targetHeight) / 2;
+
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(0, topOffset, targetWidth, targetHeight),
+        Paint(),
+      );
+    } else {
+      // Image is taller than Instagram's aspect ratio
+      targetWidth = size.height * aspectRatio;
+      // Center the image horizontally
+      double leftOffset = (size.width - targetWidth) / 2;
+
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(leftOffset, 0, targetWidth, targetHeight),
+        Paint(),
+      );
+    }
   }
 }
