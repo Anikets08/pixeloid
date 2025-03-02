@@ -50,7 +50,7 @@ class _DraggableTextState extends State<DraggableText> {
 
         // Handle double tap to edit text
         onDoubleTap: () {
-          _showEditTextDialog(context);
+          widget.onTextEdit(widget.key!, widget.text);
         },
 
         // Handle long press to start dragging for delete

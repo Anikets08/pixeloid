@@ -243,7 +243,13 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   // Method to update text when edited
-  void _updateTextElement(Key key, String newText) {
+  void _updateTextElement(Key key, String existingText) {
+    // Show the text bottom sheet with the existing text for editing
+    _showTextBottomSheet(editingKey: key, initialText: existingText);
+  }
+
+  // Method to actually update the text element with new text
+  void _applyTextUpdate(Key key, String newText) {
     if (newText.trim().isEmpty) return;
 
     setState(() {
@@ -254,7 +260,12 @@ class _EditorScreenState extends State<EditorScreen> {
         _textElements[index] = DraggableText(
           key: oldText.key!,
           text: newText,
-          textStyle: oldText.textStyle,
+          textStyle: GoogleFonts.getFont(
+            _currentFontFamily,
+            color: _textColor,
+            fontSize: _fontSize,
+            fontWeight: _fontWeight,
+          ),
           onRemove: oldText.onRemove,
           onDragStarted: oldText.onDragStarted,
           onDragEnded: oldText.onDragEnded,
@@ -306,7 +317,7 @@ class _EditorScreenState extends State<EditorScreen> {
       }
 
       // Clear the image after sharing
-      appState.clearImage();
+      // appState.clearImage();
     } catch (e) {
       debugPrint('Error sharing to Instagram: $e');
       if (mounted) {
@@ -737,7 +748,33 @@ class _EditorScreenState extends State<EditorScreen> {
     );
   }
 
-  void _showTextBottomSheet() {
+  void _showTextBottomSheet({Key? editingKey, String? initialText}) {
+    // Set initial text if editing an existing text element
+    if (initialText != null) {
+      _textInputController.text = initialText;
+    } else {
+      _textInputController.clear();
+    }
+
+    // If editing, get the current text style
+    if (editingKey != null) {
+      final int index =
+          _textElements.indexWhere((element) => element.key == editingKey);
+      if (index != -1) {
+        final DraggableText textElement = _textElements[index] as DraggableText;
+        // Extract style properties from the existing text element
+        _textColor = textElement.textStyle.color ?? Colors.white;
+        _fontSize = textElement.textStyle.fontSize ?? 24.0;
+        _fontWeight = textElement.textStyle.fontWeight ?? FontWeight.normal;
+
+        // Try to determine font family
+        final String fontFamily = textElement.textStyle.fontFamily ?? 'Roboto';
+        if (_availableFonts.contains(fontFamily)) {
+          _currentFontFamily = fontFamily;
+        }
+      }
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -773,9 +810,17 @@ class _EditorScreenState extends State<EditorScreen> {
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                _addText(_textInputController.text);
+                                if (editingKey != null) {
+                                  // Update existing text
+                                  _applyTextUpdate(
+                                      editingKey, _textInputController.text);
+                                } else {
+                                  // Add new text
+                                  _addText(_textInputController.text);
+                                }
                               },
-                              child: const Text('Add'),
+                              child:
+                                  Text(editingKey != null ? 'Update' : 'Add'),
                             ),
                           ],
                         ),
