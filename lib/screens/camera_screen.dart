@@ -177,6 +177,9 @@ class _CameraScreenState extends State<CameraScreen>
 
       // Navigate back to home screen which will show the editor
       Navigator.pop(context);
+    } else {
+      if (!mounted) return;
+      Navigator.pop(context);
     }
   }
 
