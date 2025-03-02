@@ -369,6 +369,31 @@ class _EditorScreenState extends State<EditorScreen> {
     );
   }
 
+  Future<void> discard() async {
+    await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Discard Changes?'),
+          content: Text('Are you sure you want to discard all changes?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _discardChanges();
+                Navigator.of(context).pop(true);
+              },
+              child: Text('Discard'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -381,144 +406,156 @@ class _EditorScreenState extends State<EditorScreen> {
       );
     }
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.black,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.black26,
-        title: Text(
-          _currentMode == EditorMode.drawing
-              ? 'Drawing Mode'
-              : _currentMode == EditorMode.text
-                  ? 'Text Mode'
-                  : 'Edit Photo',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (val, res) async {
+        if (!val) {
+          if (appState.capturedImage != null) {
+            await discard();
+          }
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.black26,
+          title: Text(
+            _currentMode == EditorMode.drawing
+                ? 'Drawing Mode'
+                : _currentMode == EditorMode.text
+                    ? 'Text Mode'
+                    : 'Edit Photo',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
           ),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () async {
+              await discard();
+            },
+          ),
+          actions: [
+            if (_currentMode == EditorMode.drawing ||
+                _currentMode == EditorMode.text)
+              CustomButton(
+                onPressed: _currentMode == EditorMode.drawing
+                    ? _exitDrawMode
+                    : _exitTextMode,
+                text: 'Done',
+              )
+            else
+              CustomButton(
+                onPressed: () {
+                  _shareToInstagram();
+                },
+                text: 'Share',
+                icon: Icons.share,
+              )
+          ],
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: _discardChanges,
-        ),
-        actions: [
-          if (_currentMode == EditorMode.drawing ||
-              _currentMode == EditorMode.text)
-            CustomButton(
-              onPressed: _currentMode == EditorMode.drawing
-                  ? _exitDrawMode
-                  : _exitTextMode,
-              text: 'Done',
-            )
-          else
-            CustomButton(
-              onPressed: () {
-                _shareToInstagram();
-              },
-              text: 'Share',
-              icon: Icons.share,
-            )
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          // Repaint boundary to capture the entire edited image
-                          RepaintBoundary(
-                            key: _repaintBoundaryKey,
-                            child: Stack(
-                              children: [
-                                // Image with drawing capability
-                                FlutterPainter(
-                                  controller: _controller,
-                                ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  Column(
+                    children: [
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            // Repaint boundary to capture the entire edited image
+                            RepaintBoundary(
+                              key: _repaintBoundaryKey,
+                              child: Stack(
+                                children: [
+                                  // Image with drawing capability
+                                  FlutterPainter(
+                                    controller: _controller,
+                                  ),
 
-                                // Stickers layer
-                                ..._stickers,
+                                  // Stickers layer
+                                  ..._stickers,
 
-                                // Text elements layer
-                                ..._textElements,
-                              ],
+                                  // Text elements layer
+                                  ..._textElements,
+                                ],
+                              ),
                             ),
-                          ),
-                          if (_currentMode == EditorMode.drawing)
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Container(
-                                height: 40,
-                                color: Colors.black,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                  horizontal: 16,
-                                ),
-                                child: Center(
-                                  child: // show stroke width as a container height
-                                      Container(
-                                    height: _controller.freeStyleStrokeWidth,
-                                    width: _controller.freeStyleStrokeWidth,
-                                    decoration: BoxDecoration(
-                                      color: _controller.freeStyleColor,
-                                      shape: BoxShape.circle,
+                            if (_currentMode == EditorMode.drawing)
+                              Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                  height: 40,
+                                  color: Colors.black,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 16,
+                                  ),
+                                  child: Center(
+                                    child: // show stroke width as a container height
+                                        Container(
+                                      height: _controller.freeStyleStrokeWidth,
+                                      width: _controller.freeStyleStrokeWidth,
+                                      decoration: BoxDecoration(
+                                        color: _controller.freeStyleColor,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            )
-                        ],
-                      ),
-                    ),
-
-                    // Bottom toolbar - changes based on mode
-                    Container(
-                      color: Colors.black12,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: _buildToolbar(),
-                    ),
-                  ],
-                ),
-
-                // Delete zone that appears when a sticker or text is being dragged
-                if (_showDeleteZone)
-                  Positioned(
-                    bottom: 80,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      key: _deleteZoneKey,
-                      height: 80,
-                      color: Colors.red.withAlpha(200),
-                      child: const Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.delete_forever,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Drop here to delete',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
+                              )
                           ],
                         ),
                       ),
-                    ),
+
+                      // Bottom toolbar - changes based on mode
+                      Container(
+                        color: Colors.black12,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: _buildToolbar(),
+                      ),
+                    ],
                   ),
-              ],
-            ),
+
+                  // Delete zone that appears when a sticker or text is being dragged
+                  if (_showDeleteZone)
+                    Positioned(
+                      bottom: 80,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        key: _deleteZoneKey,
+                        height: 80,
+                        color: Colors.red.withAlpha(200),
+                        child: const Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_forever,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Drop here to delete',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+      ),
     );
   }
 
