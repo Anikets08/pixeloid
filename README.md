@@ -1,4 +1,4 @@
-# InstaPlus
+# Pixeloid
 
 An interactive photo canvas app that allows users to capture, edit, and share photos on Instagram Stories.
 
@@ -19,31 +19,6 @@ An interactive photo canvas app that allows users to capture, edit, and share ph
 - Flutter SDK (latest stable version)
 - Android Studio or Xcode
 - A physical device for testing camera functionality
-
-## Installation
-
-1. Clone this repository:
-
-   ```
-   git clone https://github.com/yourusername/instaplus.git
-   ```
-
-2. Navigate to the project directory:
-
-   ```
-   cd instaplus
-   ```
-
-3. Install dependencies:
-
-   ```
-   flutter pub get
-   ```
-
-4. Run the app:
-   ```
-   flutter run
-   ```
 
 ## Usage
 

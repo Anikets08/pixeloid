@@ -1,4 +1,4 @@
-package com.devniket.instaplus
+package com.devniket.pixeloid
 
 import android.app.Activity
 import android.content.ActivityNotFoundException

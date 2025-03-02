@@ -6,8 +6,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_painter_v2/flutter_painter.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:instaplus/models/enum/tool_bar_button_type.dart';
-import 'package:instaplus/widgets/custom_button.dart';
+import 'package:pixeloid/models/enum/tool_bar_button_type.dart';
+import 'package:pixeloid/widgets/custom_button.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -616,10 +616,10 @@ class _EditorScreenState extends State<EditorScreen> {
                 // Save the image to a temporary file
                 final tempDir = await getTemporaryDirectory();
                 final File file = File(
-                    '${tempDir.path}/instaPlus_${DateTime.now().millisecondsSinceEpoch}.png');
+                    '${tempDir.path}/pixeloid_${DateTime.now().millisecondsSinceEpoch}.png');
                 await file.writeAsBytes(pngBytes);
                 if (!mounted) return;
-                Gal.putImage(file.path, album: 'InstaPlus');
+                Gal.putImage(file.path, album: 'Pixeloid');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text('Image saved to gallery'),
