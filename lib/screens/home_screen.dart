@@ -1,16 +1,50 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/app_state.dart';
-import 'camera_screen.dart';
 import 'editor_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isFirstLoad = true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isFirstLoad) {
+      _preFetchImages();
+      _isFirstLoad = false;
+    }
+  }
+
+  Future<void> _preFetchImages() async {
+    await precacheImage(
+      const AssetImage('assets/main.jpg'),
+      context,
+    );
+    FlutterNativeSplash.remove();
+  }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.height < 600;
 
     // If we have a captured image and we're in editing mode, show the editor
     if (appState.capturedImage != null && appState.isEditing) {
@@ -20,89 +54,86 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.shade800,
-              Colors.deepPurple.shade900,
-            ],
-          ),
+          color: Colors.white,
         ),
         child: Column(
           children: [
-            SizedBox(
-              width: double.infinity,
-              height: 300,
-              child: Image.network(
-                'https://c0.wallpaperflare.com/preview/893/377/258/travel-van-australia-vintage.jpg',
+            Flexible(
+              flex: 3,
+              child: Image.asset(
+                'assets/main.jpg',
                 fit: BoxFit.cover,
+                width: double.infinity,
               ),
             ),
-            // Main Content
-            Expanded(
+            Flexible(
+              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: size.width * 0.06,
+                  vertical: isSmallScreen ? 12 : 24,
+                ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Spacer(),
                     Text(
                       'PIXELOID',
                       style: GoogleFonts.montserrat(
-                        fontSize: 36,
+                        fontSize: isSmallScreen ? 26 : 32,
                         fontWeight: FontWeight.bold,
                         letterSpacing: -1,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
-
-                    const SizedBox(height: 14),
-
+                    SizedBox(height: 2),
                     // Description
                     Text(
                       'Capture photos, add stickers, text, and drawings, then share directly to Instagram',
-                      style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        color: Colors.white.withOpacity(0.8),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.9),
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: isSmallScreen ? 20 : 32),
 
                     // Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CameraScreen(),
-                            ),
+                        onPressed: () async {
+                          XFile? img = await ImagePicker().pickImage(
+                            source: ImageSource.camera,
+                            preferredCameraDevice: CameraDevice.rear,
+                            requestFullMetadata: true,
+                            imageQuality: 100,
                           );
+                          if (img != null && context.mounted) {
+                            Provider.of<AppState>(context, listen: false)
+                                .setCapturedImage(
+                              File(img.path),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.deepPurple.shade900,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: isSmallScreen ? 8 : 10,
+                          ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           elevation: 0,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.camera_alt,
-                              color: Colors.black,
-                            ),
-                            const SizedBox(width: 8),
                             Text(
                               'Take a Photo',
                               style: GoogleFonts.roboto(
-                                fontSize: 16,
+                                fontSize: isSmallScreen ? 14 : 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -110,39 +141,41 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 8),
 
                     // Secondary Button
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CameraScreen(openGallery: true),
-                            ),
+                        onPressed: () async {
+                          XFile? img = await ImagePicker().pickImage(
+                            source: ImageSource.gallery,
                           );
+                          if (img != null && context.mounted) {
+                            Provider.of<AppState>(context, listen: false)
+                                .setCapturedImage(
+                              File(img.path),
+                            );
+                          }
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
+                          foregroundColor: Colors.black,
                           side:
-                              const BorderSide(color: Colors.white, width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                              const BorderSide(color: Colors.black, width: 1.5),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isSmallScreen ? 8 : 10,
+                          ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.photo_library),
-                            const SizedBox(width: 8),
                             Text(
                               'Choose from Gallery',
                               style: GoogleFonts.roboto(
-                                fontSize: 16,
+                                fontSize: isSmallScreen ? 14 : 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -150,19 +183,8 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const Spacer(),
                   ],
-                ),
-              ),
-            ),
-
-            // Footer
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Text(
-                'Made with ❤️ for Instagram',
-                style: GoogleFonts.roboto(
-                  fontSize: 14,
-                  color: Colors.white,
                 ),
               ),
             ),

@@ -65,20 +65,32 @@ class _EditorScreenState extends State<EditorScreen> {
 
   // List of available Google Fonts
   final List<String> _availableFonts = [
-    'Roboto',
-    'Lato',
-    'Open Sans',
-    'Montserrat',
-    'Oswald',
     'Raleway',
+    'Elsie',
+    'Merriweather',
     'Poppins',
     'Playfair Display',
     'Dancing Script',
+    'Oswald',
+    'Quicksand',
+    'Abril Fatface',
     'Pacifico',
-    'Shadows Into Light',
-    'Caveat',
+    'Comfortaa',
+    'Righteous',
+    'Sacramento',
+    'Bebas Neue',
     'Satisfy',
+    'Permanent Marker',
+    'Caveat',
+    'Amatic SC',
+    'Great Vibes',
     'Lobster',
+    'Monoton',
+    'Courgette',
+    'Kalam',
+    'Indie Flower',
+    'Shadows Into Light',
+    'Architects Daughter',
   ];
 
   // Add these properties to track image dimensions and aspect ratio
@@ -87,6 +99,7 @@ class _EditorScreenState extends State<EditorScreen> {
 
   // Add a line height property to the class
   double _lineHeight = 1.2;
+  double _letterSpacing = 0.0;
 
   @override
   void initState() {
@@ -219,7 +232,8 @@ class _EditorScreenState extends State<EditorScreen> {
             color: _textColor,
             fontSize: _fontSize,
             fontWeight: _fontWeight,
-            height: _lineHeight, // Add line height to the text style
+            height: _lineHeight,
+            letterSpacing: _letterSpacing,
           ),
           onRemove: (key) {
             setState(() {
@@ -269,7 +283,8 @@ class _EditorScreenState extends State<EditorScreen> {
             color: _textColor,
             fontSize: _fontSize,
             fontWeight: _fontWeight,
-            height: _lineHeight, // Add line height to the text style
+            height: _lineHeight,
+            letterSpacing: _letterSpacing,
           ),
           onRemove: oldText.onRemove,
           onDragStarted: oldText.onDragStarted,
@@ -342,23 +357,26 @@ class _EditorScreenState extends State<EditorScreen> {
     bool isSelected = false,
     required ToolBarButtonType type,
   }) {
-    return SizedBox(
-      height: 40,
-      width: 40,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white12,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(200),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      height: 44,
+      width: 44,
+      child: Material(
+        color: isSelected
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Colors.white12,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onPressed,
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Icon(
+              icon,
+              size: 20,
+              color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+            ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: Colors.white,
         ),
       ),
     );
@@ -394,9 +412,25 @@ class _EditorScreenState extends State<EditorScreen> {
     final appState = Provider.of<AppState>(context);
 
     if (appState.capturedImage == null || !_isImageLoaded) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: Colors.black,
         body: Center(
-          child: CircularProgressIndicator(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(
+                color: Colors.white,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading image...',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -415,20 +449,26 @@ class _EditorScreenState extends State<EditorScreen> {
         backgroundColor: Colors.black,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
-          backgroundColor: Colors.black26,
+          backgroundColor: Colors.black.withOpacity(0.5),
+          elevation: 0,
           title: Text(
             _currentMode == EditorMode.drawing
                 ? 'Drawing Mode'
                 : _currentMode == EditorMode.text
                     ? 'Text Mode'
                     : 'Edit Photo',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.close),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
             onPressed: () async {
               await discard();
             },
@@ -436,24 +476,83 @@ class _EditorScreenState extends State<EditorScreen> {
           actions: [
             if (_currentMode == EditorMode.drawing ||
                 _currentMode == EditorMode.text)
-              CustomButton(
-                onPressed: _currentMode == EditorMode.drawing
-                    ? _exitDrawMode
-                    : _exitTextMode,
-                text: 'Done',
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: TextButton(
+                  onPressed: _currentMode == EditorMode.drawing
+                      ? _exitDrawMode
+                      : _exitTextMode,
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(
+                    'Done',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               )
             else
-              CustomButton(
-                onPressed: () {
-                  _shareToInstagram();
-                },
-                text: 'Share',
-                icon: Icons.share,
-              )
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: TextButton.icon(
+                  onPressed: () {
+                    _shareToInstagram();
+                  },
+                  icon: const Icon(
+                    Icons.share_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Share',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Processing...',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : Stack(
                 children: [
                   Column(
@@ -461,85 +560,128 @@ class _EditorScreenState extends State<EditorScreen> {
                       Expanded(
                         child: Stack(
                           children: [
-                            // Repaint boundary to capture the entire edited image
                             RepaintBoundary(
                               key: _repaintBoundaryKey,
                               child: Stack(
                                 children: [
-                                  // Image with drawing capability
                                   FlutterPainter(
                                     controller: _controller,
                                   ),
-
-                                  // Stickers layer
                                   ..._stickers,
-
-                                  // Text elements layer
                                   ..._textElements,
                                 ],
                               ),
                             ),
                             if (_currentMode == EditorMode.drawing)
-                              Align(
-                                alignment: Alignment.bottomCenter,
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
                                 child: Container(
-                                  height: 40,
-                                  color: Colors.black,
+                                  height: 60,
+                                  color: Colors.black.withOpacity(0.7),
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 8,
                                     horizontal: 16,
                                   ),
-                                  child: Center(
-                                    child: // show stroke width as a container height
-                                        Container(
-                                      height: _controller.freeStyleStrokeWidth,
-                                      width: _controller.freeStyleStrokeWidth,
-                                      decoration: BoxDecoration(
-                                        color: _controller.freeStyleColor,
-                                        shape: BoxShape.circle,
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.remove,
+                                          color: _controller.freeStyleColor,
+                                          size: 24,
+                                        ),
+                                        onPressed: () {
+                                          if (_controller.freeStyleStrokeWidth >
+                                              2) {
+                                            setState(() {
+                                              _controller
+                                                  .freeStyleStrokeWidth -= 2;
+                                            });
+                                          }
+                                        },
                                       ),
-                                    ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Container(
+                                          height:
+                                              _controller.freeStyleStrokeWidth,
+                                          decoration: BoxDecoration(
+                                            color: _controller.freeStyleColor,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.add,
+                                          color: _controller.freeStyleColor,
+                                          size: 24,
+                                        ),
+                                        onPressed: () {
+                                          if (_controller.freeStyleStrokeWidth <
+                                              25) {
+                                            setState(() {
+                                              _controller
+                                                  .freeStyleStrokeWidth += 2;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
                               )
                           ],
                         ),
                       ),
-
-                      // Bottom toolbar - changes based on mode
                       Container(
-                        color: Colors.black12,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: _buildToolbar(),
+                        color: Colors.black.withOpacity(0.7),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        child: SafeArea(
+                          top: false,
+                          child: _buildToolbar(),
+                        ),
                       ),
                     ],
                   ),
-
-                  // Delete zone that appears when a sticker or text is being dragged
                   if (_showDeleteZone)
                     Positioned(
-                      bottom: 80,
-                      left: 0,
-                      right: 0,
+                      bottom: 100,
+                      left: 16,
+                      right: 16,
                       child: Container(
                         key: _deleteZoneKey,
                         height: 80,
-                        color: Colors.red.withAlpha(200),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white24,
+                            width: 2,
+                          ),
+                        ),
                         child: const Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.delete_forever,
+                                Icons.delete_forever_rounded,
                                 color: Colors.white,
                                 size: 32,
                               ),
-                              SizedBox(width: 8),
+                              SizedBox(width: 12),
                               Text(
                                 'Drop here to delete',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   fontSize: 18,
                                 ),
                               ),
@@ -560,45 +702,17 @@ class _EditorScreenState extends State<EditorScreen> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 10,
+          spacing: 12,
           children: [
             _iconButton(
-              Icons.color_lens,
+              Icons.palette_rounded,
               () {
                 _showColorPicker();
               },
               type: ToolBarButtonType.color,
             ),
             _iconButton(
-              Icons.exposure_minus_1_outlined,
-              () {
-                // Toggle brush size
-                setState(() {
-                  // min 5, max 25
-                  if (_controller.freeStyleStrokeWidth > 5) {
-                    _controller.freeStyleStrokeWidth -= 5;
-                  }
-                });
-              },
-              isSelected: true,
-              type: ToolBarButtonType.pen,
-            ),
-            _iconButton(
-              Icons.exposure_plus_1_rounded,
-              () {
-                // Toggle brush size
-                setState(() {
-                  // min 5, max 25
-                  if (_controller.freeStyleStrokeWidth < 25) {
-                    _controller.freeStyleStrokeWidth += 5;
-                  }
-                });
-              },
-              isSelected: true,
-              type: ToolBarButtonType.pen,
-            ),
-            _iconButton(
-              Icons.undo,
+              Icons.undo_rounded,
               () {
                 _controller.undo();
               },
@@ -609,107 +723,59 @@ class _EditorScreenState extends State<EditorScreen> {
       case EditorMode.text:
       case EditorMode.normal:
         return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 10,
           children: [
-            // Drawing tool
             _iconButton(
-              Icons.brush,
+              Icons.brush_rounded,
               () {
                 _enterDrawMode();
               },
-              isSelected: false,
+              isSelected: _currentMode == EditorMode.drawing,
               type: ToolBarButtonType.pen,
             ),
-
-            // Text tool
             _iconButton(
-              Icons.text_fields,
+              Icons.text_fields_rounded,
               () {
                 _enterTextMode();
               },
-              isSelected: false,
+              isSelected: _currentMode == EditorMode.text,
               type: ToolBarButtonType.text,
             ),
-
-            // Sticker picker
             _iconButton(
-              Icons.emoji_emotions,
+              Icons.emoji_emotions_rounded,
               () {
                 _showStickerPicker();
               },
               type: ToolBarButtonType.sticker,
             ),
-
-            // Background color picker (only show for non-standard aspect ratio images)
             if (_imageAspectRatio != null &&
                 ((_imageAspectRatio! - 9 / 16).abs() > 0.01))
               _iconButton(
-                Icons.format_color_fill,
+                Icons.format_color_fill_rounded,
                 () {
                   _showBackgroundColorPicker();
                 },
                 type: ToolBarButtonType.color,
               ),
-
-            // Undo
             _iconButton(
-              Icons.undo,
+              Icons.undo_rounded,
               () {
                 _controller.undo();
               },
               type: ToolBarButtonType.undo,
             ),
-
-            // Clear all
             _iconButton(
-              Icons.delete,
+              Icons.delete_outline_rounded,
               () {
-                _controller.clearDrawables();
-                setState(() {
-                  _stickers = [];
-                  _textElements = [];
-                });
+                _showClearConfirmation();
               },
               type: ToolBarButtonType.delete,
             ),
-
-            //save to gallery
             _iconButton(
-              Icons.save,
+              Icons.save_rounded,
               () async {
-                final RenderRepaintBoundary boundary =
-                    _repaintBoundaryKey.currentContext!.findRenderObject()
-                        as RenderRepaintBoundary;
-                final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-                final ByteData? byteData =
-                    await image.toByteData(format: ui.ImageByteFormat.png);
-
-                if (byteData == null) {
-                  throw Exception('Failed to capture image');
-                }
-
-                final Uint8List pngBytes = byteData.buffer.asUint8List();
-
-                // Save the image to a temporary file
-                final tempDir = await getTemporaryDirectory();
-                final File file = File(
-                    '${tempDir.path}/pixeloid_${DateTime.now().millisecondsSinceEpoch}.png');
-                await file.writeAsBytes(pngBytes);
-                if (!mounted) return;
-                Gal.putImage(file.path, album: 'Pixeloid');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Image saved to gallery'),
-                    action: SnackBarAction(
-                      label: 'View',
-                      onPressed: () {
-                        OpenFile.open(file.path);
-                      },
-                    ),
-                  ),
-                );
+                await _saveToGallery();
               },
               type: ToolBarButtonType.save,
             ),
@@ -718,46 +784,228 @@ class _EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  Future<void> _saveToGallery() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final RenderRepaintBoundary boundary = _repaintBoundaryKey.currentContext!
+          .findRenderObject() as RenderRepaintBoundary;
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) {
+        throw Exception('Failed to capture image');
+      }
+
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+
+      // Save the image to a temporary file
+      final tempDir = await getTemporaryDirectory();
+      final File file = File(
+          '${tempDir.path}/pixeloid_${DateTime.now().millisecondsSinceEpoch}.png');
+      await file.writeAsBytes(pngBytes);
+
+      if (!mounted) return;
+
+      await Gal.putImage(file.path, album: 'Pixeloid');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Image saved to gallery',
+                  style: GoogleFonts.poppins(),
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'View',
+            onPressed: () {
+              OpenFile.open(file.path);
+            },
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Failed to save image',
+                  style: GoogleFonts.poppins(),
+                ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showClearConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Clear All Changes?',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Text(
+            'This will remove all drawings, stickers, and text. This action cannot be undone.',
+            style: GoogleFonts.poppins(),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey[800],
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                _controller.clearDrawables();
+                setState(() {
+                  _stickers = [];
+                  _textElements = [];
+                });
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: Text(
+                'Clear All',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showColorPicker() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isDismissible: true,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
-        return StatefulBuilder(builder: (context, ss) {
-          return Container(
-            height: 300,
-            padding: const EdgeInsets.all(16),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: Colors.primaries.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    // Select color
-                    setState(() {
-                      _controller.freeStyleColor = Colors.primaries[index];
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    decoration: BoxDecoration(
-                      color: Colors.primaries[index],
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black12, width: 2),
+        return StatefulBuilder(
+          builder: (context, ss) {
+            return Container(
+              height: 300,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Select Color',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                );
-              },
-            ),
-          );
-        });
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount:
+                          Colors.primaries.length + 2, // +2 for black and white
+                      itemBuilder: (context, index) {
+                        Color color;
+                        if (index < Colors.primaries.length) {
+                          color = Colors.primaries[index];
+                        } else if (index == Colors.primaries.length) {
+                          color = Colors.black;
+                        } else {
+                          color = Colors.white;
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _controller.freeStyleColor = color;
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _controller.freeStyleColor == color
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[300]!,
+                                width: 3,
+                              ),
+                              boxShadow: _controller.freeStyleColor == color
+                                  ? [
+                                      BoxShadow(
+                                        color: color.withOpacity(0.4),
+                                        blurRadius: 8,
+                                        spreadRadius: 2,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -781,27 +1029,23 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   void _showTextBottomSheet({Key? editingKey, String? initialText}) {
-    // Set initial text if editing an existing text element
     if (initialText != null) {
       _textInputController.text = initialText;
     } else {
       _textInputController.clear();
     }
 
-    // If editing, get the current text style
     if (editingKey != null) {
       final int index =
           _textElements.indexWhere((element) => element.key == editingKey);
       if (index != -1) {
         final DraggableText textElement = _textElements[index] as DraggableText;
-        // Extract style properties from the existing text element
         _textColor = textElement.textStyle.color ?? Colors.white;
         _fontSize = textElement.textStyle.fontSize ?? 24.0;
         _fontWeight = textElement.textStyle.fontWeight ?? FontWeight.normal;
-        _lineHeight = textElement.textStyle.height ??
-            1.2; // Get line height from existing text
+        _lineHeight = textElement.textStyle.height ?? 1.2;
+        _letterSpacing = textElement.textStyle.letterSpacing ?? 0.0;
 
-        // Try to determine font family
         final String fontFamily = textElement.textStyle.fontFamily ?? 'Roboto';
         if (_availableFonts.contains(fontFamily)) {
           _currentFontFamily = fontFamily;
@@ -832,16 +1076,15 @@ class _EditorScreenState extends State<EditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header with title and actions
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           editingKey != null ? 'Edit Text' : 'Add Text',
-                          style: const TextStyle(
+                          style: GoogleFonts.poppins(
                             color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Row(
@@ -854,42 +1097,40 @@ class _EditorScreenState extends State<EditorScreen> {
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.grey[700],
                               ),
-                              child: const Text('Cancel'),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.poppins(),
+                              ),
                             ),
                             const SizedBox(width: 8),
-                            ElevatedButton(
+                            FilledButton(
                               onPressed: () {
                                 Navigator.pop(context);
                                 if (editingKey != null) {
-                                  // Update existing text
                                   _applyTextUpdate(
                                       editingKey, _textInputController.text);
                                 } else {
-                                  // Add new text
                                   _addText(_textInputController.text);
                                 }
                               },
-                              style: ElevatedButton.styleFrom(
+                              style: FilledButton.styleFrom(
                                 backgroundColor: Theme.of(context).primaryColor,
-                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
+                              ),
+                              child: Text(
+                                editingKey != null ? 'Update' : 'Add',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              child:
-                                  Text(editingKey != null ? 'Update' : 'Add'),
                             ),
                           ],
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    // Text preview
                     Container(
                       padding: const EdgeInsets.all(16),
                       width: double.infinity,
@@ -920,17 +1161,15 @@ class _EditorScreenState extends State<EditorScreen> {
                           color: _textColor,
                           fontWeight: _fontWeight,
                           height: _lineHeight,
+                          letterSpacing: _letterSpacing,
                         ),
                         textAlign: TextAlign.center,
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
                     Expanded(
                       child: ListView(
                         children: [
-                          // Text input
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.grey[100],
@@ -948,10 +1187,14 @@ class _EditorScreenState extends State<EditorScreen> {
                               controller: _textInputController,
                               decoration: InputDecoration(
                                 hintText: 'Enter your text...',
-                                hintStyle: TextStyle(color: Colors.grey[600]),
+                                hintStyle: GoogleFonts.poppins(
+                                  color: Colors.grey[600],
+                                ),
                                 border: InputBorder.none,
                               ),
-                              style: TextStyle(color: Colors.grey[800]),
+                              style: GoogleFonts.poppins(
+                                color: Colors.grey[800],
+                              ),
                               maxLines: 3,
                               autofocus: true,
                               onChanged: (value) {
@@ -959,457 +1202,253 @@ class _EditorScreenState extends State<EditorScreen> {
                               },
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
-                          // Section title
-                          Text(
-                            'Text Size',
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Font size slider
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[300]!,
-                                width: 1,
+                          _buildTextStyleSection(
+                            'Font Style',
+                            Container(
+                              height: 120,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.text_fields,
-                                  size: 20,
-                                  color: Colors.grey[700],
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 1,
                                 ),
-                                Expanded(
-                                  child: Slider(
-                                    value: _fontSize,
-                                    min: 12,
-                                    max: 72,
-                                    divisions: 60,
-                                    label: _fontSize.round().toString(),
-                                    activeColor: Theme.of(context).primaryColor,
-                                    inactiveColor: Colors.grey[300],
-                                    onChanged: (value) {
-                                      setModalState(() {
-                                        _fontSize = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '${_fontSize.round()}',
-                                    style: TextStyle(
-                                      color: Colors.grey[800],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Section title
-                          Text(
-                            'Text Color',
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Text color picker
-                          Container(
-                            height: 70,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[300]!,
-                                width: 1,
                               ),
-                            ),
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                ...Colors.primaries.map((color) {
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _availableFonts.length,
+                                itemBuilder: (context, index) {
+                                  final fontFamily = _availableFonts[index];
                                   return GestureDetector(
                                     onTap: () {
                                       setModalState(() {
-                                        _textColor = color;
+                                        _currentFontFamily = fontFamily;
                                       });
                                     },
                                     child: Container(
                                       margin: const EdgeInsets.only(right: 12),
-                                      width: 50,
-                                      height: 50,
+                                      padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: color,
-                                        shape: BoxShape.circle,
+                                        color: _currentFontFamily == fontFamily
+                                            ? Theme.of(context)
+                                                .primaryColor
+                                                .withOpacity(0.2)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: _textColor == color
+                                          color: _currentFontFamily ==
+                                                  fontFamily
                                               ? Theme.of(context).primaryColor
-                                              : Colors.transparent,
-                                          width: 3,
+                                              : Colors.grey[300]!,
+                                          width: 2,
                                         ),
-                                        boxShadow: _textColor == color
-                                            ? [
-                                                BoxShadow(
-                                                  color: color.withOpacity(0.5),
-                                                  blurRadius: 8,
-                                                  spreadRadius: 2,
-                                                ),
-                                              ]
-                                            : null,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Aa',
+                                            style: GoogleFonts.getFont(
+                                              fontFamily,
+                                              fontSize: 28,
+                                              color: _currentFontFamily ==
+                                                      fontFamily
+                                                  ? Theme.of(context)
+                                                      .primaryColor
+                                                  : Colors.grey[800],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            fontFamily,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              color: _currentFontFamily ==
+                                                      fontFamily
+                                                  ? Theme.of(context)
+                                                      .primaryColor
+                                                  : Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   );
-                                }),
-                                // Add white and black
-                                GestureDetector(
-                                  onTap: () {
-                                    setModalState(() {
-                                      _textColor = Colors.white;
-                                    });
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 12),
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: _textColor == Colors.white
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.grey[400]!,
-                                        width: 3,
-                                      ),
-                                      boxShadow: _textColor == Colors.white
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                blurRadius: 8,
-                                                spreadRadius: 2,
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    setModalState(() {
-                                      _textColor = Colors.black;
-                                    });
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 12),
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: _textColor == Colors.black
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.transparent,
-                                        width: 3,
-                                      ),
-                                      boxShadow: _textColor == Colors.black
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.5),
-                                                blurRadius: 8,
-                                                spreadRadius: 2,
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Section title
-                          Text(
-                            'Font Style',
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Font family picker
-                          Container(
-                            height: 120,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[300]!,
-                                width: 1,
+                                },
                               ),
                             ),
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _availableFonts.length,
-                              itemBuilder: (context, index) {
-                                final fontFamily = _availableFonts[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    setModalState(() {
-                                      _currentFontFamily = fontFamily;
-                                    });
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 12),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: _currentFontFamily == fontFamily
-                                          ? Theme.of(context)
-                                              .primaryColor
-                                              .withOpacity(0.2)
-                                          : Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: _currentFontFamily == fontFamily
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.grey[300]!,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Aa',
-                                          style: GoogleFonts.getFont(
-                                            fontFamily,
-                                            fontSize: 28,
-                                            color: _currentFontFamily ==
-                                                    fontFamily
-                                                ? Theme.of(context).primaryColor
-                                                : Colors.grey[800],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          fontFamily,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: _currentFontFamily ==
-                                                    fontFamily
-                                                ? Theme.of(context).primaryColor
-                                                : Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
+                          ),
+                          const SizedBox(height: 24),
+                          _buildTextStyleSection(
+                            'Text Size',
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.text_fields_rounded,
+                                    size: 20,
+                                    color: Colors.grey[700],
+                                  ),
+                                  Expanded(
+                                    child: Slider(
+                                      value: _fontSize,
+                                      min: 12,
+                                      max: 72,
+                                      divisions: 60,
+                                      label: _fontSize.round().toString(),
+                                      activeColor:
+                                          Theme.of(context).primaryColor,
+                                      inactiveColor: Colors.grey[300],
+                                      onChanged: (value) {
+                                        setModalState(() {
+                                          _fontSize = value;
+                                        });
+                                      },
                                     ),
                                   ),
-                                );
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      '${_fontSize.round()}',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.grey[800],
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildTextStyleSection(
+                            'Text Color',
+                            Container(
+                              height: 70,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 1,
+                                ),
+                              ),
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  ...Colors.primaries.map((color) {
+                                    return _buildColorButton(
+                                      color,
+                                      setModalState,
+                                    );
+                                  }),
+                                  _buildColorButton(
+                                    Colors.white,
+                                    setModalState,
+                                  ),
+                                  _buildColorButton(
+                                    Colors.black,
+                                    setModalState,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildTextStyleSection(
+                            'Font Weight',
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildWeightButton(
+                                    'Normal',
+                                    FontWeight.normal,
+                                    setModalState,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  _buildWeightButton(
+                                    'Bold',
+                                    FontWeight.bold,
+                                    setModalState,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildTextStyleSection(
+                            'Line Spacing',
+                            _buildSliderControl(
+                              Icons.format_line_spacing_rounded,
+                              _lineHeight,
+                              0.8,
+                              2.5,
+                              17,
+                              (value) {
+                                setModalState(() {
+                                  _lineHeight = value;
+                                });
                               },
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
-                          // Section title
-                          Text(
-                            'Font Weight',
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                          _buildTextStyleSection(
+                            'Letter Spacing',
+                            _buildSliderControl(
+                              Icons.space_bar,
+                              _letterSpacing,
+                              -2.0,
+                              10.0,
+                              24,
+                              (value) {
+                                setModalState(() {
+                                  _letterSpacing = value;
+                                });
+                              },
                             ),
                           ),
-                          const SizedBox(height: 8),
-
-                          // Font weight
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[300]!,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setModalState(() {
-                                      _fontWeight = FontWeight.normal;
-                                    });
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        _fontWeight == FontWeight.normal
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.white,
-                                    foregroundColor:
-                                        _fontWeight == FontWeight.normal
-                                            ? Colors.white
-                                            : Colors.grey[800],
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  child: const Text('Normal'),
-                                ),
-                                const SizedBox(width: 16),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setModalState(() {
-                                      _fontWeight = FontWeight.bold;
-                                    });
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        _fontWeight == FontWeight.bold
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.white,
-                                    foregroundColor:
-                                        _fontWeight == FontWeight.bold
-                                            ? Colors.white
-                                            : Colors.grey[800],
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  child: const Text('Bold'),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Line Height section
-                          Text(
-                            'Line Spacing',
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Line height slider
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[300]!,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.format_line_spacing,
-                                  size: 20,
-                                  color: Colors.grey[700],
-                                ),
-                                Expanded(
-                                  child: Slider(
-                                    value: _lineHeight,
-                                    min: 0.8,
-                                    max: 2.5,
-                                    divisions: 17,
-                                    label: _lineHeight.toStringAsFixed(1),
-                                    activeColor: Theme.of(context).primaryColor,
-                                    inactiveColor: Colors.grey[300],
-                                    onChanged: (value) {
-                                      setModalState(() {
-                                        _lineHeight = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    _lineHeight.toStringAsFixed(1),
-                                    style: TextStyle(
-                                      color: Colors.grey[800],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -1421,6 +1460,153 @@ class _EditorScreenState extends State<EditorScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildTextStyleSection(String title, Widget content) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 8),
+        content,
+      ],
+    );
+  }
+
+  Widget _buildColorButton(Color color, StateSetter setState) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _textColor = color;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: _textColor == color
+                ? Theme.of(context).primaryColor
+                : color == Colors.white
+                    ? Colors.grey[400]!
+                    : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: _textColor == color
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.5),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeightButton(
+      String text, FontWeight weight, StateSetter setState) {
+    final bool isSelected = _fontWeight == weight;
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _fontWeight = weight;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            isSelected ? Theme.of(context).primaryColor : Colors.white,
+        foregroundColor: isSelected ? Colors.white : Colors.grey[800],
+        elevation: isSelected ? 2 : 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 12,
+        ),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliderControl(
+    IconData icon,
+    double value,
+    double min,
+    double max,
+    int divisions,
+    ValueChanged<double> onChanged,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Colors.grey[700],
+          ),
+          Expanded(
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              label: value.toStringAsFixed(1),
+              activeColor: Theme.of(context).primaryColor,
+              inactiveColor: Colors.grey[300],
+              onChanged: onChanged,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              value.toStringAsFixed(1),
+              style: GoogleFonts.poppins(
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

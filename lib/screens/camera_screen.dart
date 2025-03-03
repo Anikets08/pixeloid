@@ -100,7 +100,7 @@ class _CameraScreenState extends State<CameraScreen>
 
     _controller = CameraController(
       camera,
-      ResolutionPreset.high,
+      ResolutionPreset.max,
       enableAudio: false,
     );
 
@@ -225,7 +225,9 @@ class _CameraScreenState extends State<CameraScreen>
             Positioned.fill(
               child: AspectRatio(
                 aspectRatio: _controller!.value.aspectRatio,
-                child: CameraPreview(_controller!),
+                child: CameraPreview(
+                  _controller!,
+                ),
               ),
             ),
 

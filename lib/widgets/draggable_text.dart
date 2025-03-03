@@ -162,48 +162,6 @@ class _DraggableTextState extends State<DraggableText> {
     );
   }
 
-  // Show dialog to edit text
-  void _showEditTextDialog(BuildContext context) {
-    final TextEditingController textController =
-        TextEditingController(text: widget.text);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit Text'),
-          content: TextField(
-            controller: textController,
-            decoration: const InputDecoration(
-              hintText: 'Enter your text...',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 3,
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                if (textController.text.trim().isNotEmpty) {
-                  widget.onTextEdit(widget.key!, textController.text);
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   bool _isOverDeleteZone() {
     if (widget.deleteZoneKey.currentContext == null) return false;
 
